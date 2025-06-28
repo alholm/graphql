@@ -112,6 +112,9 @@ func writeQuery(w io.Writer, t reflect.Type, inline bool) {
 			}
 			f := t.Field(i)
 			value, ok := f.Tag.Lookup("graphql")
+			if !ok {
+				value, ok = f.Tag.Lookup("json")
+			}
 			inlineField := f.Anonymous && !ok
 			if !inlineField {
 				if ok {
