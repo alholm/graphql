@@ -227,6 +227,16 @@ func TestConstructQuery(t *testing.T) {
 			}{},
 			want: `{viewer{login,createdAt,id,databaseId}}`,
 		},
+		{
+			inV: struct {
+				Viewer struct {
+					Login      string
+					CreatedAt  time.Time `json:"created_at"`
+					DatabaseID int       `json:"databaseID,omitempty"`
+				}
+			}{},
+			want: `{viewer{login,created_at,databaseID}}`,
+		},
 	}
 	for _, tc := range tests {
 		got := constructQuery(tc.inV, tc.inVariables)

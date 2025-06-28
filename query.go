@@ -6,6 +6,7 @@ import (
 	"io"
 	"reflect"
 	"sort"
+	"strings"
 
 	"github.com/shurcooL/graphql/ident"
 )
@@ -112,6 +113,9 @@ func writeQuery(w io.Writer, t reflect.Type, inline bool) {
 			}
 			f := t.Field(i)
 			value, ok := f.Tag.Lookup("graphql")
+			if !ok {
+				value, ok = jsonTagName(f.Tag, "json")
+			}
 			inlineField := f.Anonymous && !ok
 			if !inlineField {
 				if ok {
@@ -129,3 +133,18 @@ func writeQuery(w io.Writer, t reflect.Type, inline bool) {
 }
 
 var jsonUnmarshaler = reflect.TypeOf((*json.Unmarshaler)(nil)).Elem()
+
+func jsonTagName(tag reflect.StructTag, key string) (name string, ok bool) {
+	raw, has := tag.Lookup(key)
+	if !has || raw == "-" {
+		return "", false
+	}
+	// split off any options (omitempty, string, etc)
+	if i := strings.IndexByte(raw, ','); i >= 0 {
+		raw = raw[:i]
+	}
+	if raw == "" {
+		return "", false // e.g. `json:",omitempty"`
+	}
+	return raw, true
+}
